@@ -272,6 +272,10 @@ def my_data():
     
     return render_template('my_data.html', health_records=health_records)
 
+@app.route('/favicon.ico')
+def favicon():
+    return app.send_static_file('favicon.ico')
+
 @app.route('/chronic-diseases')
 def chronic_diseases():
     diseases_info = {
