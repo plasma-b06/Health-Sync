@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Health Assessment - HealthSync{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>Health Assessment
+                    </h2>
+                    <p class="mb-0">Please answer the following questions about your health</p>
+                </div>
+                
+                <div class="card-body p-5">
+                    <form method="POST" class="needs-validation" novalidate>
+                        <!-- Family History -->
+                        <div class="mb-4">
+                            <label class="form-label fs-5 fw-bold">
+                                <i class="fas fa-users me-2 text-primary"></i>
+                                Do you have a family history of chronic diseases?
+                            </label>
+                            <div class="mt-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="family_history" id="family_yes" value="yes" required>
+                                    <label class="form-check-label" for="family_yes">Yes</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="family_history" id="family_no" value="no" required>
+                                    <label class="form-check-label" for="family_no">No</label>
+                                </div>
+                                <div class="invalid-feedback">
+                                    Please select an option.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Symptoms -->
+                        <div class="mb-4">
+                            <label class="form-label fs-5 fw-bold">
+                                <i class="fas fa-thermometer-half me-2 text-danger"></i>
+                                Do you experience any of the following symptoms? (Select all that apply)
+                            </label>
+                            <div class="mt-2">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="symptoms" value="fatigue" id="symptom_fatigue">
+                                            <label class="form-check-label" for="symptom_fatigue">Chronic fatigue</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="symptoms" value="shortness_of_breath" id="symptom_breath">
+                                            <label class="form-check-label" for="symptom_breath">Shortness of breath</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="symptoms" value="chest_pain" id="symptom_chest">
+                                            <label class="form-check-label" for="symptom_chest">Chest pain</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="symptoms" value="headaches" id="symptom_headaches">
+                                            <label class="form-check-label" for="symptom_headaches">Frequent headaches</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="symptoms" value="dizziness" id="symptom_dizziness">
+                                            <label class="form-check-label" for="symptom_dizziness">Dizziness</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="symptoms" value="weight_changes" id="symptom_weight">
+                                            <label class="form-check-label" for="symptom_weight">Unexplained weight changes</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="symptoms" value="joint_pain" id="symptom_joint">
+                                            <label class="form-check-label" for="symptom_joint">Joint pain</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="symptoms" value="none" id="symptom_none">
+                                            <label class="form-check-label" for="symptom_none">None of the above</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Exercise Frequency -->
+                        <div class="mb-4">
+                            <label for="exercise_frequency" class="form-label fs-5 fw-bold">
+                                <i class="fas fa-running me-2 text-success"></i>
+                                How often do you exercise?
+                            </label>
+                            <select class="form-select" id="exercise_frequency" name="exercise_frequency" required>
+                                <option value="">Choose your exercise frequency...</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">3-4 times per week</option>
+                                <option value="occasionally">1-2 times per week</option>
+                                <option value="rarely">Rarely (less than once per week)</option>
+                                <option value="never">Never</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select your exercise frequency.
+                            </div>
+                        </div>
+                        
+                        <!-- Chronic Condition -->
+                        <div class="mb-4">
+                            <label for="chronic_condition" class="form-label fs-5 fw-bold">
+                                <i class="fas fa-file-medical me-2 text-warning"></i>
+                                Do you have any diagnosed chronic conditions? If yes, please specify:
+                            </label>
+                            <textarea class="form-control" id="chronic_condition" name="chronic_condition" rows="3" 
+                                     placeholder="e.g., Diabetes Type 2, Hypertension, Heart Disease, etc. Leave blank if none."></textarea>
+                            <div class="form-text">
+                                Please list any chronic conditions you've been diagnosed with by a healthcare professional.
+                            </div>
+                        </div>
+                        
+                        <!-- Current Medications -->
+                        <div class="mb-5">
+                            <label for="medications" class="form-label fs-5 fw-bold">
+                                <i class="fas fa-pills me-2 text-info"></i>
+                                Current medications (if any):
+                            </label>
+                            <textarea class="form-control" id="medications" name="medications" rows="3" 
+                                     placeholder="e.g., Metformin, Lisinopril, Aspirin, etc. Leave blank if none."></textarea>
+                            <div class="form-text">
+                                List any prescription medications, over-the-counter drugs, or supplements you regularly take.
+                            </div>
+                        </div>
+                        
+                        <!-- Disclaimer -->
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Important:</strong> This assessment is for educational purposes only and should not replace professional medical advice. 
+                            Always consult with healthcare professionals for medical concerns.
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check-circle me-2"></i>Submit Assessment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle "None of the above" checkbox for symptoms
+    const noneCheckbox = document.getElementById('symptom_none');
+    const symptomCheckboxes = document.querySelectorAll('input[name="symptoms"]:not(#symptom_none)');
+    
+    noneCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            symptomCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+    });
+    
+    symptomCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                noneCheckbox.checked = false;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

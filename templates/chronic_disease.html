@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Chronic Diseases Information - HealthSync{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 fw-bold">Chronic Diseases Information</h1>
+            <p class="lead text-muted">Learn about common chronic diseases, their symptoms, risk factors, and management strategies</p>
+        </div>
+    </div>
+    
+    <!-- Disease Cards -->
+    <div class="row">
+        {% for disease_key, disease_info in diseases.items() %}
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">
+                        {% if disease_key == 'diabetes' %}
+                            <i class="fas fa-tint me-2"></i>
+                        {% elif disease_key == 'hypertension' %}
+                            <i class="fas fa-heartbeat me-2"></i>
+                        {% elif disease_key == 'heart_disease' %}
+                            <i class="fas fa-heart me-2"></i>
+                        {% endif %}
+                        {{ disease_info.name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ disease_info.description }}</p>
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal{{ disease_key }}">
+                        <i class="fas fa-info-circle me-2"></i>Learn More
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- General Health Tips -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body text-center py-5">
+                    <h3 class="card-title text-primary">
+                        <i class="fas fa-lightbulb me-2"></i>Prevention is Key
+                    </h3>
+                    <p class="card-text lead">
+                        Many chronic diseases can be prevented or managed through healthy lifestyle choices. 
+                        Regular exercise, a balanced diet, not smoking, and limiting alcohol can significantly reduce your risk.
+                    </p>
+                    <div class="row mt-4">
+                        <div class="col-md-3 text-center">
+                            <i class="fas fa-running fa-2x text-success mb-2"></i>
+                            <p class="small fw-bold">Stay Active</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <i class="fas fa-apple-alt fa-2x text-success mb-2"></i>
+                            <p class="small fw-bold">Eat Healthy</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <i class="fas fa-ban fa-2x text-danger mb-2"></i>
+                            <p class="small fw-bold">Don't Smoke</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <i class="fas fa-user-md fa-2x text-info mb-2"></i>
+                            <p class="small fw-bold">Regular Checkups</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Disease Information Modals -->
+{% for disease_key, disease_info in diseases.items() %}
+<div class="modal fade" id="modal{{ disease_key }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    {% if disease_key == 'diabetes' %}
+                        <i class="fas fa-tint me-2"></i>
+                    {% elif disease_key == 'hypertension' %}
+                        <i class="fas fa-heartbeat me-2"></i>
+                    {% elif disease_key == 'heart_disease' %}
+                        <i class="fas fa-heart me-2"></i>
+                    {% endif %}
+                    {{ disease_info.name }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Description -->
+                <div class="mb-4">
+                    <p class="lead">{{ disease_info.description }}</p>
+                </div>
+                
+                <div class="row">
+                    <!-- Symptoms -->
+                    <div class="col-md-6 mb-4">
+                        <h6 class="text-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Common Symptoms
+                        </h6>
+                        <ul class="list-group list-group-flush">
+                            {% for symptom in disease_info.symptoms %}
+                            <li class="list-group-item px-0">
+                                <i class="fas fa-check-circle text-danger me-2"></i>{{ symptom }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <!-- Risk Factors -->
+                    <div class="col-md-6 mb-4">
+                        <h6 class="text-warning">
+                            <i class="fas fa-exclamation-circle me-2"></i>Risk Factors
+                        </h6>
+                        <ul class="list-group list-group-flush">
+                            {% for factor in disease_info.risk_factors %}
+                            <li class="list-group-item px-0">
+                                <i class="fas fa-exclamation text-warning me-2"></i>{{ factor }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <!-- Prevention -->
+                    <div class="col-md-6 mb-4">
+                        <h6 class="text-success">
+                            <i class="fas fa-shield-alt me-2"></i>Prevention Tips
+                        </h6>
+                        <ul class="list-group list-group-flush">
+                            {% for tip in disease_info.prevention %}
+                            <li class="list-group-item px-0">
+                                <i class="fas fa-check text-success me-2"></i>{{ tip }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <!-- Management -->
+                    <div class="col-md-6 mb-4">
+                        <h6 class="text-info">
+                            <i class="fas fa-cogs me-2"></i>Management Strategies
+                        </h6>
+                        <ul class="list-group list-group-flush">
+                            {% for strategy in disease_info.management %}
+                            <li class="list-group-item px-0">
+                                <i class="fas fa-arrow-right text-info me-2"></i>{{ strategy }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Important Notice -->
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> This information is for educational purposes only. 
+                    Always consult with healthcare professionals for proper diagnosis, treatment, and management of any health condition.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('health_assessment') }}" class="btn btn-primary">
+                    <i class="fas fa-clipboard-check me-2"></i>Take Assessment
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Additional Resources Section -->
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-external-link-alt me-2"></i>Additional Resources
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <h6 class="text-primary">National Organizations</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-link me-2"></i>American Heart Association</li>
+                                <li><i class="fas fa-link me-2"></i>American Diabetes Association</li>
+                                <li><i class="fas fa-link me-2"></i>Centers for Disease Control</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <h6 class="text-success">Healthy Living</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-apple-alt me-2"></i>Nutrition guidelines</li>
+                                <li><i class="fas fa-running me-2"></i>Exercise recommendations</li>
+                                <li><i class="fas fa-bed me-2"></i>Sleep hygiene tips</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <h6 class="text-info">Professional Help</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-user-md me-2"></i>Find a doctor</li>
+                                <li><i class="fas fa-phone me-2"></i>Telehealth services</li>
+                                <li><i class="fas fa-hospital me-2"></i>Emergency contacts</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

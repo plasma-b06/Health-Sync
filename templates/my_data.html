@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}My Health Data - HealthSync{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="display-6">My Health Data</h1>
+                    <p class="lead text-muted">Track your health assessment history</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('health_assessment') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>New Assessment
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if health_records %}
+    <!-- Summary Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-clipboard-list fa-2x mb-3"></i>
+                    <h3>{{ health_records|length }}</h3>
+                    <p class="mb-0">Total Assessments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-2x mb-3"></i>
+                    <h3>{{ health_records[0].submission_date.strftime('%b %d') }}</h3>
+                    <p class="mb-0">Latest Assessment</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-2x mb-3"></i>
+                    <h3>{{ health_records[-1].submission_date.strftime('%b %d') }}</h3>
+                    <p class="mb-0">First Assessment</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Health Records -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-history me-2"></i>Assessment History
+                    </h4>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Family History</th>
+                                    <th>Exercise Frequency</th>
+                                    <th>Chronic Conditions</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in health_records %}
+                                {% set answers = record.get_answers() %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-bold">{{ record.submission_date.strftime('%B %d, %Y') }}</span>
+                                            <small class="text-muted">{{ record.submission_date.strftime('%I:%M %p') }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ 'bg-warning' if answers.family_history == 'yes' else 'bg-success' }}">
+                                            {{ 'Yes' if answers.family_history == 'yes' else 'No' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ 'bg-success' if answers.exercise_frequency in ['daily', 'weekly'] else 'bg-warning' if answers.exercise_frequency == 'occasionally' else 'bg-danger' }}">
+                                            {{ answers.exercise_frequency|title if answers.exercise_frequency else 'Not specified' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if answers.chronic_condition %}
+                                            <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ answers.chronic_condition }}">
+                                                {{ answers.chronic_condition }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">None reported</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="viewDetails('{{ loop.index0 }}')">
+                                            <i class="fas fa-eye me-1"></i>View Details
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Assessment Details Modals -->
+    {% for record in health_records %}
+    {% set answers = record.get_answers() %}
+    <div class="modal fade" id="detailsModal{{ loop.index0 }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-clipboard-check me-2"></i>
+                        Assessment Details - {{ record.submission_date.strftime('%B %d, %Y') }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Assessment Result -->
+                    <div class="mb-4">
+                        <h6 class="text-primary">Assessment Result:</h6>
+                        <div class="bg-light p-3 rounded assessment-result">
+                            {{ record.assessment_result|replace('\n', '<br>')|safe }}
+                        </div>
+                    </div>
+                    
+                    <!-- Detailed Responses -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Family History:</h6>
+                            <p><span class="badge {{ 'bg-warning' if answers.family_history == 'yes' else 'bg-success' }}">
+                                {{ 'Yes' if answers.family_history == 'yes' else 'No' }}
+                            </span></p>
+                            
+                            <h6>Exercise Frequency:</h6>
+                            <p><span class="badge {{ 'bg-success' if answers.exercise_frequency in ['daily', 'weekly'] else 'bg-warning' if answers.exercise_frequency == 'occasionally' else 'bg-danger' }}">
+                                {{ answers.exercise_frequency|title if answers.exercise_frequency else 'Not specified' }}
+                            </span></p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6>Reported Symptoms:</h6>
+                            {% if answers.symptoms and answers.symptoms != ['none'] %}
+                                <p>
+                                    {% for symptom in answers.symptoms %}
+                                        {% if symptom != 'none' %}
+                                            <span class="badge bg-warning me-1">{{ symptom|replace('_', ' ')|title }}</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </p>
+                            {% else %}
+                                <p class="text-muted">None reported</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if answers.chronic_condition or answers.medications %}
+                    <div class="row mt-3">
+                        {% if answers.chronic_condition %}
+                        <div class="col-12 mb-3">
+                            <h6>Chronic Conditions:</h6>
+                            <p class="border p-2 rounded bg-light">{{ answers.chronic_condition }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if answers.medications %}
+                        <div class="col-12">
+                            <h6>Current Medications:</h6>
+                            <p class="border p-2 rounded bg-light">{{ answers.medications }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    {% else %}
+    <!-- No Data State -->
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-clipboard fa-4x text-muted mb-4"></i>
+                <h3 class="text-muted">No Health Data Yet</h3>
+                <p class="lead text-muted mb-4">You haven't completed any health assessments yet. Take your first assessment to start tracking your health journey.</p>
+                <a href="{{ url_for('health_assessment') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Take Your First Assessment
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function viewDetails(index) {
+    const modal = new bootstrap.Modal(document.getElementById('detailsModal' + index));
+    modal.show();
+}
+</script>
+
+<style>
+.assessment-result {
+    white-space: pre-line;
+    line-height: 1.6;
+}
+</style>
+{% endblock %}

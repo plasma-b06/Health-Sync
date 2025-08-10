@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - HealthSync{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="display-6">Welcome back, {{ current_user.username }}!</h1>
+                    <p class="lead text-muted">Here's an overview of your health journey</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('health_assessment') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>New Assessment
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-clipboard-check fa-2x mb-3"></i>
+                    <h3 class="card-title">{{ total_assessments }}</h3>
+                    <p class="card-text">Total Assessments</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-2x mb-3"></i>
+                    <h3 class="card-title">
+                        {% if latest_assessment %}
+                            {{ latest_assessment.submission_date.strftime('%b %d') }}
+                        {% else %}
+                            --
+                        {% endif %}
+                    </h3>
+                    <p class="card-text">Last Assessment</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-clock fa-2x mb-3"></i>
+                    <h3 class="card-title">{{ current_user.created_at.strftime('%b %Y') }}</h3>
+                    <p class="card-text">Member Since</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Latest Assessment -->
+    {% if latest_assessment %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Latest Health Assessment
+                        <small class="text-muted ms-2">{{ latest_assessment.submission_date.strftime('%B %d, %Y at %I:%M %p') }}</small>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div class="assessment-result">
+                                {{ latest_assessment.assessment_result|replace('\n', '<br>')|safe }}
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="bg-light p-3 rounded">
+                                <h6>Quick Summary</h6>
+                                {% set answers = latest_assessment.get_answers() %}
+                                <ul class="list-unstyled">
+                                    <li><strong>Family History:</strong> {{ 'Yes' if answers.family_history == 'yes' else 'No' }}</li>
+                                    <li><strong>Exercise:</strong> {{ answers.exercise_frequency|title }}</li>
+                                    {% if answers.chronic_condition %}
+                                    <li><strong>Chronic Condition:</strong> {{ answers.chronic_condition }}</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Quick Actions -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="mb-4">Quick Actions</h3>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-heartbeat fa-2x text-primary mb-3"></i>
+                    <h5 class="card-title">Health Assessment</h5>
+                    <p class="card-text">Take a comprehensive health assessment to track your wellness.</p>
+                    <a href="{{ url_for('health_assessment') }}" class="btn btn-primary">Start Assessment</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-chart-bar fa-2x text-success mb-3"></i>
+                    <h5 class="card-title">View My Data</h5>
+                    <p class="card-text">Review your health history and track progress over time.</p>
+                    <a href="{{ url_for('my_data') }}" class="btn btn-success">View Data</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-book-medical fa-2x text-info mb-3"></i>
+                    <h5 class="card-title">Learn About Diseases</h5>
+                    <p class="card-text">Access educational resources about chronic diseases.</p>
+                    <a href="{{ url_for('chronic_diseases') }}" class="btn btn-info">Learn More</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-user-cog fa-2x text-warning mb-3"></i>
+                    <h5 class="card-title">Account Settings</h5>
+                    <p class="card-text">Manage your profile and account preferences.</p>
+                    <a href="#" class="btn btn-warning" onclick="alert('Account settings feature coming soon!')">Settings</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Health Tips -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h4 class="card-title text-center mb-4">
+                        <i class="fas fa-lightbulb me-2"></i>Daily Health Tip
+                    </h4>
+                    <div class="row">
+                        <div class="col-lg-8 mx-auto text-center">
+                            <p class="lead">
+                                "Regular physical activity can reduce your risk of chronic diseases by up to 50%. 
+                                Even 30 minutes of moderate exercise daily can make a significant difference in your health outcomes."
+                            </p>
+                            <small class="text-muted">Remember: This app provides educational information and should not replace professional medical advice.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.assessment-result {
+    white-space: pre-line;
+    line-height: 1.6;
+}
+</style>
+{% endblock %}

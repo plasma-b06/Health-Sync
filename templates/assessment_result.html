@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Assessment Results - HealthSync{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h2 class="card-title mb-0">
+                        <i class="fas fa-check-circle me-2"></i>Assessment Complete!
+                    </h2>
+                    <p class="mb-0">Your health assessment has been successfully processed</p>
+                </div>
+                
+                <div class="card-body p-5">
+                    <!-- Assessment Result -->
+                    <div class="row mb-5">
+                        <div class="col-12">
+                            <div class="bg-light p-4 rounded">
+                                <h4 class="text-primary mb-3">
+                                    <i class="fas fa-chart-line me-2"></i>Your Health Assessment Results
+                                </h4>
+                                <div class="assessment-result">
+                                    {{ assessment|replace('\n', '<br>')|safe }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Response Summary -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="mb-3">
+                                <i class="fas fa-clipboard-list me-2"></i>Your Responses Summary
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card border-primary">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Family History</h6>
+                                            <p class="card-text">
+                                                <span class="badge {{ 'bg-warning' if answers.family_history == 'yes' else 'bg-success' }}">
+                                                    {{ 'Yes' if answers.family_history == 'yes' else 'No' }}
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="card border-success">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Exercise Frequency</h6>
+                                            <p class="card-text">
+                                                <span class="badge {{ 'bg-success' if answers.exercise_frequency in ['daily', 'weekly'] else 'bg-warning' if answers.exercise_frequency == 'occasionally' else 'bg-danger' }}">
+                                                    {{ answers.exercise_frequency|title }}
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if answers.symptoms and answers.symptoms != ['none'] %}
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="card border-warning">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Reported Symptoms</h6>
+                                            <p class="card-text">
+                                                {% for symptom in answers.symptoms %}
+                                                    {% if symptom != 'none' %}
+                                                        <span class="badge bg-warning me-1">{{ symptom|replace('_', ' ')|title }}</span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if answers.chronic_condition %}
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <div class="card border-danger">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Chronic Conditions</h6>
+                                            <p class="card-text">{{ answers.chronic_condition }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            {% if answers.medications %}
+                                <div class="col-md-6">
+                                    <div class="card border-info">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Current Medications</h6>
+                                            <p class="card-text">{{ answers.medications }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Next Steps -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <h5 class="alert-heading">
+                                    <i class="fas fa-info-circle me-2"></i>Next Steps
+                                </h5>
+                                <ul class="mb-0">
+                                    <li>Review your results with a healthcare professional</li>
+                                    <li>Keep track of any changes in your symptoms or health status</li>
+                                    <li>Take regular assessments to monitor your health over time</li>
+                                    <li>Explore our educational resources about chronic diseases</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg me-md-2">
+                                    <i class="fas fa-home me-2"></i>Go to Dashboard
+                                </a>
+                                <a href="{{ url_for('my_data') }}" class="btn btn-outline-primary btn-lg me-md-2">
+                                    <i class="fas fa-chart-bar me-2"></i>View My Data
+                                </a>
+                                <a href="{{ url_for('chronic_diseases') }}" class="btn btn-outline-info btn-lg">
+                                    <i class="fas fa-book-medical me-2"></i>Learn More
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.assessment-result {
+    white-space: pre-line;
+    line-height: 1.6;
+    font-size: 1.1rem;
+}
+</style>
+{% endblock %}
