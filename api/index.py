@@ -1,7 +1,4 @@
-import sys
-from pathlib import Path
+# Simple import without path manipulation
+from app import app
 
-# Add parent directory to sys.path
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-
-from app import app  # Your Flask app instance
+# This is the entry point for Vercel

@@ -7,17 +7,21 @@ from datetime import datetime
 import json
 
 # Create Flask app
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates')
 
 # Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
-# Database configuration for Vercel
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
-    database_url = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+# Database configuration
+DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('SQLALCHEMY_DATABASE_URI')
+
+if DATABASE_URL:
+    # Production - use provided database URL
+    if DATABASE_URL.startswith('postgres://'):
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 else:
-    # Local development - SQLite
+    # Local development or fallback
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///healthsync.db'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -25,9 +29,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize extensions
 db = SQLAlchemy(app)
 login_manager = LoginManager()
-
-# Initialize extensions with app
-db.init_app(app)
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
@@ -42,7 +43,6 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationship with health data
     health_data = db.relationship('HealthData', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def set_password(self, password):
@@ -80,12 +80,10 @@ def generate_health_assessment(answers):
     recommendations = []
     risk_level = "Low"
     
-    # Family history assessment
     if answers.get('family_history') == 'yes':
         risk_factors.append("family history of chronic diseases")
         risk_level = "Moderate"
     
-    # Symptoms assessment
     symptoms = answers.get('symptoms', [])
     if isinstance(symptoms, str):
         symptoms = [symptoms]
@@ -96,7 +94,6 @@ def generate_health_assessment(answers):
         risk_level = "High"
         recommendations.append("Consult a healthcare professional immediately")
     
-    # Exercise assessment
     exercise = answers.get('exercise_frequency')
     if exercise in ['never', 'rarely']:
         risk_factors.append("insufficient physical activity")
@@ -104,19 +101,16 @@ def generate_health_assessment(answers):
         if risk_level == "Low":
             risk_level = "Moderate"
     
-    # Chronic condition assessment
     chronic_condition = answers.get('chronic_condition', '').strip()
     if chronic_condition:
         risk_factors.append(f"diagnosed chronic condition: {chronic_condition}")
         risk_level = "High"
         recommendations.append("Continue following your healthcare provider's treatment plan")
     
-    # Medication assessment
     medications = answers.get('medications', '').strip()
     if medications:
         recommendations.append("Ensure you're taking medications as prescribed")
     
-    # Generate assessment text
     assessment = f"Health Assessment Result:\n\nRisk Level: {risk_level}\n\n"
     
     if risk_factors:
@@ -132,16 +126,6 @@ def generate_health_assessment(answers):
     
     return assessment
 
-# Initialize database
-def init_db():
-    """Initialize database tables"""
-    try:
-        with app.app_context():
-            db.create_all()
-            print("Database tables created successfully")
-    except Exception as e:
-        print(f"Error creating database tables: {e}")
-
 # Routes
 @app.route('/')
 def index():
@@ -155,7 +139,6 @@ def register():
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
         
-        # Validation
         if not all([username, email, password, confirm_password]):
             flash('All fields are required.', 'error')
             return render_template('register.html')
@@ -168,7 +151,6 @@ def register():
             flash('Password must be at least 6 characters long.', 'error')
             return render_template('register.html')
         
-        # Check if user already exists
         if User.query.filter_by(username=username).first():
             flash('Username already exists.', 'error')
             return render_template('register.html')
@@ -177,7 +159,6 @@ def register():
             flash('Email already registered.', 'error')
             return render_template('register.html')
         
-        # Create new user
         user = User(username=username, email=email)
         user.set_password(password)
         
@@ -225,7 +206,6 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Get user's latest health data
     latest_assessment = HealthData.query.filter_by(user_id=current_user.id)\
         .order_by(HealthData.submission_date.desc()).first()
     
@@ -239,7 +219,6 @@ def dashboard():
 @login_required
 def health_assessment():
     if request.method == 'POST':
-        # Collect form data
         answers = {
             'family_history': request.form.get('family_history'),
             'symptoms': request.form.getlist('symptoms'),
@@ -248,10 +227,8 @@ def health_assessment():
             'medications': request.form.get('medications', '')
         }
         
-        # Generate assessment
         assessment_result = generate_health_assessment(answers)
         
-        # Save to database
         health_data = HealthData(
             user_id=current_user.id,
             assessment_result=assessment_result
@@ -275,7 +252,6 @@ def health_assessment():
 @app.route('/my-data')
 @login_required
 def my_data():
-    # Get all user's health data, ordered by most recent
     health_records = HealthData.query.filter_by(user_id=current_user.id)\
         .order_by(HealthData.submission_date.desc()).all()
     
@@ -312,32 +288,24 @@ def chronic_diseases():
     
     return render_template('chronic_diseases.html', diseases=diseases_info)
 
-# Error handlers
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html'), 404
 
 @app.errorhandler(500)
 def internal_error(error):
-    db.session.rollback()
+    if hasattr(db, 'session'):
+        db.session.rollback()
     return render_template('500.html'), 500
 
-# Initialize database tables when app starts
-@app.before_first_request
-def create_tables():
-    """Create database tables if they don't exist"""
-    try:
+# Initialize database when the module is loaded
+try:
+    with app.app_context():
         db.create_all()
         print("Database tables created successfully")
-    except Exception as e:
-        print(f"Error creating tables: {e}")
+except Exception as e:
+    print(f"Error creating tables: {e}")
 
 # For local development
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
-
-# This is required for Vercel
-def handler(event, context):
-    return app(event, context)
