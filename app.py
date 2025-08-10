@@ -5,28 +5,33 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import json
-from functools import wraps
 
+# Create Flask app
 app = Flask(__name__)
 
-# Configuration for Vercel deployment
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+# Configuration
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
-# For Vercel, we'll use PostgreSQL or MySQL instead of SQLite
-# You'll need to set up a database service like Neon, PlanetScale, or Vercel's own Postgres
+# Database configuration for Vercel
 DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
-    # Production database (PostgreSQL)
+    # For production - use PostgreSQL from Vercel/Neon
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+elif os.environ.get('VERCEL'):
+    # If on Vercel but no DATABASE_URL, use PostgreSQL
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:password@localhost/healthsync'
 else:
-    # Fallback for local development
+    # Local development - SQLite
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///healthsync.db'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
-db = SQLAlchemy(app)
+db = SQLAlchemy()
 login_manager = LoginManager()
+
+# Initialize extensions with app
+db.init_app(app)
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
@@ -38,7 +43,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relationship with health data
@@ -60,7 +65,10 @@ class HealthData(db.Model):
     assessment_result = db.Column(db.Text, nullable=False)
     
     def get_answers(self):
-        return json.loads(self.question_answers)
+        try:
+            return json.loads(self.question_answers)
+        except:
+            return {}
     
     def set_answers(self, answers_dict):
         self.question_answers = json.dumps(answers_dict)
@@ -128,6 +136,16 @@ def generate_health_assessment(answers):
     
     return assessment
 
+# Initialize database
+def init_db():
+    """Initialize database tables"""
+    try:
+        with app.app_context():
+            db.create_all()
+            print("Database tables created successfully")
+    except Exception as e:
+        print(f"Error creating database tables: {e}")
+
 # Routes
 @app.route('/')
 def index():
@@ -175,6 +193,7 @@ def register():
         except Exception as e:
             db.session.rollback()
             flash('An error occurred during registration.', 'error')
+            print(f"Registration error: {e}")
             return render_template('register.html')
     
     return render_template('register.html')
@@ -253,6 +272,7 @@ def health_assessment():
         except Exception as e:
             db.session.rollback()
             flash('An error occurred while saving your assessment.', 'error')
+            print(f"Assessment save error: {e}")
     
     return render_template('health_assessment.html')
 
@@ -306,25 +326,22 @@ def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
 
-# Initialize database tables (for production, you might want to use Flask-Migrate)
+# Initialize database tables when app starts
+@app.before_first_request
 def create_tables():
     """Create database tables if they don't exist"""
     try:
-        with app.app_context():
-            db.create_all()
+        db.create_all()
+        print("Database tables created successfully")
     except Exception as e:
         print(f"Error creating tables: {e}")
 
-# For Vercel, we need to initialize the app differently
-if __name__ != '__main__':
-    # This runs when deployed to Vercel
-    create_tables()
-
+# For local development
 if __name__ == '__main__':
-    # This runs in local development
     with app.app_context():
         db.create_all()
     app.run(debug=True)
 
-# Export the app for Vercel
-app = app
+# This is required for Vercel
+def handler(event, context):
+    return app(event, context)
