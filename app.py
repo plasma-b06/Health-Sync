@@ -295,9 +295,9 @@ def internal_error(error):
     return render_template('500.html'), 500
 
 # Initialize database
-@app.before_first_request
-def create_tables():
-    db.create_all()
+#@app.before_first_request
+#def create_tables():
+ #   db.create_all()
 
 if __name__ == '__main__':
     with app.app_context():
