@@ -1,15 +1,27 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import json
-import os
 from functools import wraps
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///healthsync.db')
+
+# Configuration for Vercel deployment
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+
+# For Vercel, we'll use PostgreSQL or MySQL instead of SQLite
+# You'll need to set up a database service like Neon, PlanetScale, or Vercel's own Postgres
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    # Production database (PostgreSQL)
+    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+else:
+    # Fallback for local development
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///healthsync.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
@@ -294,12 +306,25 @@ def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
 
-# Initialize database
-#@app.before_first_request
-#def create_tables():
- #   db.create_all()
+# Initialize database tables (for production, you might want to use Flask-Migrate)
+def create_tables():
+    """Create database tables if they don't exist"""
+    try:
+        with app.app_context():
+            db.create_all()
+    except Exception as e:
+        print(f"Error creating tables: {e}")
+
+# For Vercel, we need to initialize the app differently
+if __name__ != '__main__':
+    # This runs when deployed to Vercel
+    create_tables()
 
 if __name__ == '__main__':
+    # This runs in local development
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
+# Export the app for Vercel
+app = app
