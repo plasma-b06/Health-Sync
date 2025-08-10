@@ -14,12 +14,8 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-i
 
 # Database configuration for Vercel
 DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
-    # For production - use PostgreSQL from Vercel/Neon
-    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
-elif os.environ.get('VERCEL'):
-    # If on Vercel but no DATABASE_URL, use PostgreSQL
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://neondb_owner:npg_qxcC5G7uLVJf@ep-purple-morning-a1xx3jq4-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+    database_url = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
 else:
     # Local development - SQLite
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///healthsync.db'
@@ -27,7 +23,7 @@ else:
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
-db = SQLAlchemy()
+db = SQLAlchemy(app)
 login_manager = LoginManager()
 
 # Initialize extensions with app
