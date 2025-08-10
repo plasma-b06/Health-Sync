@@ -19,7 +19,7 @@ if DATABASE_URL:
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 elif os.environ.get('VERCEL'):
     # If on Vercel but no DATABASE_URL, use PostgreSQL
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:password@localhost/healthsync'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://neondb_owner:npg_qxcC5G7uLVJf@ep-purple-morning-a1xx3jq4-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
 else:
     # Local development - SQLite
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///healthsync.db'
