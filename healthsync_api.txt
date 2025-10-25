@@ -1,0 +1,6 @@
+'postgresql://neondb_owner:npg_wBVAvS5MekJ2@ep-withered-wind-a10xdvq3-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+i5HkrNa8faUFuhJbsvXBiYArYRsr7ZDc08aARC7f_OI
+psql 'postgresql://neondb_owner:npg_wBVAvS5MekJ2@ep-withered-wind-a10xdvq3-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+
+
+postgres://neondb_owner:npg_qxcC5G7uLVJf@ep-purple-morning-a1xx3jq4-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
