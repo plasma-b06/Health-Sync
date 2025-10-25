@@ -3,7 +3,7 @@ Despite medical advancements, India continues to face high cardiovascular mortal
 - Delayed diagnosis
 - Poor disease awareness
 - Inconsistent management of chronic conditions like diabetes, hypertension, obesity, and COPD
-HealthSync addresses this gap by offering a digital platform for early risk detection and lifestyle guidance.
+ HealthSync addresses this gap by offering a digital platform for early risk detection and lifestyle guidance.
 🧠 Features
 - 🧾 Personalized health risk assessment (BMI, sleep, diet, etc.)
 - 🧠 Logical rule-based recommendation engine
